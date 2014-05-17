@@ -288,6 +288,55 @@ void si5351::farey(float alpha, uint32_t &x, uint32_t &y)
 
 	while(q <= FAREY_N && s <= FAREY_N)
 	{
+		//mediant = (float)(p + r)/(q + s);
+		if(alpha*(q+s) == (p+r))
+			if( (q+s) <= FAREY_N) {
+				x = p + r;
+				y = q + s;
+				return;
+			}
+			else if(s > q) {
+				x = r;
+				y = s;
+				return;
+			}
+			else {
+				x = p;
+				y = q;
+				return;
+			}
+		else if(alpha*(q+s) > (p+r)) {
+			p += r;
+			q += s;
+		}
+		else {
+			r += p;
+			s += q;
+		}
+	}
+
+	if(q > FAREY_N) {
+		x = r;
+		y = s;
+		return;
+	}
+	else {
+		x = p;
+		y = q;
+		return;
+	}
+}
+
+/*void si5351::farey(float alpha, uint32_t &x, uint32_t &y)
+{
+	uint32_t p, q, r, s;
+	float mediant;
+
+	p = 0; q = 1;
+	r = 1; s = 1;
+
+	while(q <= FAREY_N && s <= FAREY_N)
+	{
 		mediant = (float)(p + r)/(q + s);
 		if(alpha == mediant)
 			if( (q+s) <= FAREY_N) {
@@ -325,4 +374,4 @@ void si5351::farey(float alpha, uint32_t &x, uint32_t &y)
 		y = q;
 		return;
 	}
-}
+}*/
