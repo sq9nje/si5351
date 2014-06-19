@@ -11,7 +11,6 @@
 /**************************************************************************/
 
 #include "si5351.h"
-#include <Serial.h>
 
 
 /**************************************************************************/
@@ -281,14 +280,12 @@ void si5351::set_frequency(uint8_t clk, uint32_t freq)
 void si5351::farey(float alpha, uint32_t &x, uint32_t &y)
 {
 	uint32_t p, q, r, s;
-	float mediant;
-
+	
 	p = 0; q = 1;
 	r = 1; s = 1;
 
 	while(q <= FAREY_N && s <= FAREY_N)
 	{
-		//mediant = (float)(p + r)/(q + s);
 		if(alpha*(q+s) == (p+r))
 			if( (q+s) <= FAREY_N) {
 				x = p + r;
@@ -327,51 +324,59 @@ void si5351::farey(float alpha, uint32_t &x, uint32_t &y)
 	}
 }
 
-/*void si5351::farey(float alpha, uint32_t &x, uint32_t &y)
+/**************************************************************************/
+/*! 
+    @brief  Set output frequency. Automaticaly selects integer/fractional
+    		mode as appropriate. This function uses a very simplistic 
+    		calculation algorithm which sacrifices accuracy of the output
+    		frequency for speed of execution. 
+
+    @param[in]	clk
+    			Number of the configured channel. Accepts CLK0, CLK1 or CLK2
+    @param[in]	freq
+    			Output frequency in Hz.
+*/
+/**************************************************************************/
+void si5351::simple_set_frequency(uint8_t clk, uint32_t freq)
 {
-	uint32_t p, q, r, s;
-	float mediant;
+	uint64_t vco;
+	uint32_t a, b, c, p1, p2;
+	uint8_t config[8];
 
-	p = 0; q = 1;
-	r = 1; s = 1;
+	if(_clk_src & (1<<clk))
+		vco = _xtal*_mult_b;
+	else
+		vco = _xtal*_mult_a;
 
-	while(q <= FAREY_N && s <= FAREY_N)
-	{
-		mediant = (float)(p + r)/(q + s);
-		if(alpha == mediant)
-			if( (q+s) <= FAREY_N) {
-				x = p + r;
-				y = q + s;
-				return;
-			}
-			else if(s > q) {
-				x = r;
-				y = s;
-				return;
-			}
-			else {
-				x = p;
-				y = q;
-				return;
-			}
-		else if(alpha > mediant) {
-			p += r;
-			q += s;
-		}
-		else {
-			r += p;
-			s += q;
-		}
-	}
+	vco = vco * 0x00100000;
 
-	if(q > FAREY_N) {
-		x = r;
-		y = s;
-		return;
+	c = 0x000FFFFE;
+
+	b = vco / freq;
+
+	a = (b - (b & 0x000FFFFF)) >> 20;
+	b = b & 0x000FFFFF;
+
+	if(b == 0) {
+		write_register(MS_0 + clk, read_register(MS_0 + clk) | (1<<MSx_INT));
+		c = 1;
+		p1 = 128*a - 512;
+		p2 = 0;
 	}
 	else {
-		x = p;
-		y = q;
-		return;
+		write_register(MS_0 + clk, read_register(MS_0 + clk) & ~(1<<MSx_INT));
+		p1 = 128*a + (128 * b)/c - 512;
+		p2 = 128*b - c*((128 * b)/c);
 	}
-}*/
+	
+	config[0] = (c & 0x0000FF00) >> 8;
+	config[1] = (c & 0x000000FF);
+	config[2] = (p1 & 0x00030000) >> 16;
+	config[3] = (p1 & 0x0000FF00) >> 8;
+	config[4] = (p1 & 0x000000FF);
+	config[5] = ((p2 & 0x000F0000) >> 16) | (c & 0x000F0000) >> 12;
+	config[6] = (p2 & 0x0000FF00) >> 8;
+	config[7] = (p2 & 0x000000FF);
+
+	write_block(MS_0 + clk*8, config, 8);
+}

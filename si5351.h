@@ -81,6 +81,7 @@ class si5351
 		void clk_enable(uint8_t clk);
 		void set_phase(uint8_t clk, uint8_t phase);
 		void set_frequency(uint8_t clk, uint32_t freq);
+		void simple_set_frequency(uint8_t clk, uint32_t freq);
 };
 
 #endif /* __SI5351_H__ */
