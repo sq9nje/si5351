@@ -1,0 +1,13 @@
+si5351	KEYWORD1
+set_frequency	KEYWORD2
+simple_set_frequency	KEYWORD2
+write_register	KEYWORD2
+write_block	KEYWORD2
+read_register	KEYWORD2
+begin	KEYWORD2
+set_xtal	KEYWORD2
+pll_integer_config	KEYWORD2
+clk_config	KEYWORD2
+clk_disable	KEYWORD2
+clk_enable	KEYWORD2
+set_phase	KEYWORD2
