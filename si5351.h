@@ -16,7 +16,8 @@
 #include <utility/twi.h>
 #include <Wire.h>
 
-#define SI5351_ADDR		0x6F
+//#define SI5351_ADDR		0x63	// I2C address of the Mouser batch of ICs
+#define SI5351_ADDR		0x60	// normal I2C address
 
 #define PLL_A			26
 #define PLL_B			34
